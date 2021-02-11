@@ -1,0 +1,46 @@
+---
+title: "API Data"
+author: "Grant Smith"
+date: "2/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(httr)
+library(rromeo)
+library(jsonlite)
+```
+
+
+```{r}
+url <- "https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/v3/get-historical-data"
+
+Rapid_key = '7231987451msh4ef6d7dc0eca129p135014jsn7084302f4672'
+
+queryString <- list(  symbol = "AMRN",
+                      region = "US"
+)
+
+yf_api<-GET(url,
+    add_headers(`x-rapidapi-host`='apidojo-yahoo-finance-v1.p.rapidapi.com',
+                `x-rapidapi-key`= paste(Rapid_key)),
+    query=queryString)
+```
+
+```{r}
+stop_for_status(yf_api)
+json <- content(yf_api, as = "text", encoding = "UTF-8")
+api_data <- fromJSON(json)
+```
+
+
+```{r}
+api_data$prices %>% head()
+```
+
+
