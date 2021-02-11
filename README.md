@@ -1,2 +1,8 @@
-# CIC-Analysis
-Analysis of the relationship between  index funds and cryptocurrency prices. 
+# CIC-Analysis 
+### Cryptocurrency - Index Correlation Analysis
+
+**Analysis of the relationship between  index funds prices and cryptocurrency prices. ** <br>
+
+#### Problem Statement <br>
+
+Can we determine a relationship between cryptocurrency prices and the performance of the overall market. For example, is there a relationship between Ethereum and the S&P 500?
