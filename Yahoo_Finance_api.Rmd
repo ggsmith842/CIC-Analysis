@@ -10,19 +10,27 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+install.packages('quantmod')
+```
+
+```{r}
 library(tidyverse)
+library(quantmod)
 library(httr)
 library(rromeo)
 library(jsonlite)
 ```
 
 
+
 ```{r}
+#historical data from yahoo finance rapid api
+#easier data solutions via quantmod package
 url <- "https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/v3/get-historical-data"
 
 Rapid_key = '7231987451msh4ef6d7dc0eca129p135014jsn7084302f4672'
 
-queryString <- list(  symbol = "AMRN",
+queryString <- list(  symbol = "BTC-USD",
                       region = "US"
 )
 
@@ -38,9 +46,33 @@ json <- content(yf_api, as = "text", encoding = "UTF-8")
 api_data <- fromJSON(json)
 ```
 
-
 ```{r}
-api_data$prices %>% head()
+
 ```
 
+
+
+
+`quantmod` will work best for gathering data. This way I can focus more on the analysis. Additionally, since the end goal is to learn more about Julia and perform some analysis with that language, there is no real reason to struggle much with the data collection. 
+
+
+```{r}
+stock_df <- function(stock){
+  TS <-getSymbols(stock,auto.assign = FALSE)
+  TS_dates<-TS['2015::'] %>% index() %>% coredata() %>% tibble('Date'=.)
+  TS_df15<-TS['2015::'] %>% coredata() 
+  
+  cbind(TS_dates,TS_df15)
+}
+```
+
+
+```{r,warning=FALSE,message=FALSE}
+SP_df <- stock_df("^GSPC")
+ETH_df <-stock_df('ETH-USD')
+```
+
+```{r}
+ETH_df %>% head()
+```
 
