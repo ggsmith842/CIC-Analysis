@@ -3,6 +3,7 @@
 - Summary statistics (avg, variance)
 - Plots (candlesticks with moving avg[50,200], density plot)
 - additional tasks 
+- add returns to dataframe
  > -- create function that accepts symbol(s) and then plots candlestick and moving averages
 
 ### Problem 1: Relationships are Tough
