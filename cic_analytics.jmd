@@ -1,3 +1,8 @@
+using weave
+
+
+```julia
+
 ##
 #load packages
 using Plots
@@ -16,10 +21,13 @@ using StatsModels
 using Lathe
 using GLM
 
+
 ##
 
-##--------
-#load dataset and process
+```
+
+```julia; results="hidden"
+
 function process_assets(symbol,period) #gotta figure out how to fix date
     data = yahoo(symbol, YahooOpt(period1 =(now() - period),period2 =now()-Day(4)))
     returns = percentchange(data.Close)
@@ -33,10 +41,16 @@ end
 eth, eth_df = process_assets(string("ETH-USD"),Month(2))
 lnk, lnk_df = process_assets(string("LINK-USD"),Month(2))
 snp, snp_df = process_assets(string("^GSPC"),Month(2))
-#eth = yahoo(:"ETH-USD", YahooOpt(period1 = now() - Month(1)))
 
-##---
 
+
+```
+### Note to self
+
+*if missing data split into training and test set before imputation, normalization, etc*
+
+
+```julia
 
 ##-- candlestick and MAs function
 function crypto_MAs(ts,df,n1=7,n2=2)
@@ -48,76 +62,131 @@ function crypto_MAs(ts,df,n1=7,n2=2)
 
     end
 ##--
-# Work on eth EDA
+
+```
+
+Let's look at our Ethereum dataset.
+
+```julia
+
 print(describe(eth_df),"\n")
 sigma = std(eth_df.Close)
 print("sigma: ",sigma)
+```
+
+```julia
 #candlestick with MA
 crypto_MAs(eth,eth_df)
-#Plot density
-histogram(eth_df[:,"Return"],bins=25,label="Returns")
-#its interesteing that there's a gap between 1400-1500 price
-##----
+```
 
-##--
-#Plotting link
-crypto_MAs(lnk,lnk_df)
-
-p1=histogram(lnk.Close,bins=25,label="Close")
-p2=histogram(lnk.Return,bins=25,label="Return")
+```julia
+p1=histogram(eth.Close,bins=25,label="Close")
+p2=histogram(eth.Return,bins=25,label="Return")
 plot(p1, p2, layout = (1, 2))
+```
 
-print(describe(lnk_df),"\n","sigma ",std(lnk_df.Close))
-##--
+## Now let's look at the S&P index
 
-##--
+
+```julia
 crypto_MAs(snp,snp_df)
 
-p1=histogram(snp.Close,bins=15,label="Close")
-p2=histogram(snp.Return,bins=15,label="Return")
-plot(p1, p2, layout = (1, 2),title="SNP Close & Return")
+```
 
+```julia
+
+p1=histogram(snp.Close,bins=25,label="Close")
+p2=histogram(snp.Return,bins=25,label="Return")
+plot(p1, p2, layout = (1, 2))
+```
+
+```julia
 print(describe(snp_df),"\n","sigma ",std(snp_df.Close))
+```
+## Lastly, ChainLink
 
-##--
+```julia
+#Plotting link
+crypto_MAs(lnk,lnk_df)
+```
 
-##--
+```julia
+p1=histogram(lnk.Close,bins=15,label="Close")
+p2=histogram(lnk.Return,bins=15,label="Return")
+plot(p1, p2, layout = (1, 2))
+```
 
+```julia
+print(describe(lnk_df),"\n","sigma ",std(lnk_df.Close))
+```
+
+```julia; results="hidden"
+
+#join ethereum tabl to snp table to get paired values
 eth_snp_df= leftjoin(eth_df,snp_df, on = :timestamp,makeunique=true)
 closing_df = eth_snp_df[:,["Close","Close_1"]]
 
+#account for missing values with next observation carried back method
 eth_snp_df = Impute.nocb(eth_snp_df)
 closing_df = Impute.nocb(closing_df)
 
 eth_lnk_df = leftjoin(eth_df,lnk_df, on = :timestamp,makeunique=true)
 eth_lnk_df_close = eth_lnk_df[:,["Close","Close_1"]]
 
-##--
+```
 
-##--
-# ETH vs SNP
+```julia
 gr()
-plot(closing_df.Close,closing_df.Close_1, seriestype = :scatter, title = "S&P Close and ETH Close")
+plot(closing_df.Close,closing_df.Close_1,
+    seriestype = :scatter,
+    title = "S&P Close and ETH Close",
+    legend=false)
+
+```
+
+```julia
 #no correlation between returns for snp and eth
-@df eth_snp_df cor(:Return,:Return_1)
+@df eth_snp_df print("Return Correlation :",cor(:Return,:Return_1),"\n")
 #moderate correlation in closing prices
-@df eth_snp_df cor(:Close,:Close_1)
+@df eth_snp_df print("Closing Price Correlation :",cor(:Close,:Close_1))
+
+```
+
+```julia
 
 #ETH vs LNK
 plot(eth_lnk_df_close.Close,eth_lnk_df_close.Close_1,
-    seriestype = :scatter, title = "ETH Close and LNK Close",label="Close")
-#no correlation between returns for snp and eth
-@df eth_lnk_df cor(:Return,:Return_1)
-#good correlation in closing prices
-@df eth_lnk_df cor(:Close,:Close_1)
+    seriestype = :scatter, title = "ETH Close and LNK Close",legend=false)
 
-##--
-#split data first
+```
+
+```julia
+
+
+#no correlation between returns for snp and eth
+@df eth_lnk_df print("Return Correlation :",cor(:Return,:Return_1),"\n")
+#good correlation in closing prices
+@df eth_lnk_df print("Closing Price Correlation :",cor(:Close,:Close_1))
+
+```
+## Regression Model
+
+Since the correlation between the closing price of ethereum and the closing price of ChainLink
+is so high, let's run a regression model and see what happens.
+
+**First split data**
+
+```julia
+
 combined_data=DataFrame(eth=eth_df.Close,lnk=lnk_df.Close)
 train, test = Lathe.preprocess.TrainTestSplit(combined_data,.70)
 
+```
 
-#### Next step is to normalize returns and check scatter plot/corr
+
+```julia; results="hidden"
+
+#Next step is to normalize
 #function to normalize a pair of columns ie eth and snp returns
 function normalize_column(arr)
     dt=StatsBase.fit(UnitRangeTransform, arr; dims=1, unit=true)
@@ -129,22 +198,31 @@ eth_norm_close = normalize_column(train.eth)
 lnk_norm_close = normalize_column(train.lnk)
 
 eth_lnk_norm_close = DataFrame(eth=eth_norm_close,lnk=lnk_norm_close)
-#plot(eth_norm_returns,snp_norm_returns, seriestype = :scatter, title = "S&P Return and ETH Return")
-#no correlation at all with returns
+```
 
-##--
+```julia
+
 #Run linear regression on lnk and eth
 
 
 fm = @formula(eth ~ lnk)
 linearRegressor = lm(fm, eth_lnk_norm_close)
-print(linearRegressor)
 
+print(linearRegressor,"\n",r2(linearRegressor))
+```
+
+```julia
 gr()
 plot(eth_lnk_norm_close.lnk,eth_lnk_norm_close.eth,
     seriestype = :scatter, title = "ETH Close and LNK Close",label="Close",legend=:bottomright)
-plot!((x) -> coef(linearRegressor)[1] + coef(linearRegressor)[2]  * x, 0, 1, label="fit_exact")
-##--
+plot!((x) -> coef(linearRegressor)[1] + coef(linearRegressor)[2]  * x, 0, 1, label="fit")
+
+```
+
+Predict on Test Data
+
+```julia
+
 eth_norm_close_test = normalize_column(test.eth)
 lnk_norm_close_test = normalize_column(test.lnk)
 
@@ -158,12 +236,16 @@ pred_df = DataFrame(eth_pred=ypredicted_test,eth_actual=test.eth)
 pred_df.err = pred_df.eth_actual-pred_df.eth_pred
 rmse = sqrt(mean(pred_df.err.*pred_df.err))
 print("RMSE:", rmse)
-##--
+
+```
+## Time for Bayes
+
+```julia; results="hidden"
 #Bayesian Inference section
 #Build function to calculate BI probability
 
 #function-----------------------
-function bayes_prob(df1,df2,increase=true,complement=false)
+function bayes_prob(df1,df2,increase=true)
 
     df = leftjoin(df1,df2, on = :timestamp,makeunique=true)
     if sum(describe(df).nmissing) > 0
@@ -188,19 +270,18 @@ function bayes_prob(df1,df2,increase=true,complement=false)
         prob_ab = prob_ba*prob_a/prob_b
     end
 
-    if complement==false
-        return prob_ab
-    else
-        return 1-prob_ab
-    end
+
+    return prob_ab
+
 end
 
-bayes_prob(eth_df,lnk_df)
+#end function
+```
 
-#end function----------------------------
+```julia
+print("Probability ETH returns increase given that ChainLink returns increase: ")
+print(round(bayes_prob(eth_df,lnk_df),digits=3), "\n")
 
-##--
-#put in weave
-#summarize findings and contents
-
-##--
+print("Probability ETH returns increase given that ChainLink returns decrease: \n")
+print(round(bayes_prob(eth_df,lnk_df,false),digits=3))
+```
