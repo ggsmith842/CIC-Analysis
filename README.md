@@ -3,7 +3,7 @@
 
 The main goal of this little project was to learn the basic of Julia while also playing around with some financial data. I chose cryptocurrencies as the main focus of this project due to it's heavy cultural presence lately. Cryptocurrency is truly an interesting beast with so many layers and concepts that are above my understanding. 
 
-Regarding Julia, it is a beautiful language. I plan to do more projects with Julia in the future hopefully with a bigger focus on big data problems and parralel processing. Julia is known for its elegant syntax and its speed. The former is definitley true, and I look forward to being impressed with the latter.
+Regarding Julia, it is a beautiful language. I plan to do more projects with Julia in the future. Hopefully with a focus on big data problems and parallel processing. Julia is known for its elegant syntax and its speed. The former is definitley true, and I look forward to being impressed with the latter.
 
 *Disclaimer*
 This project was not held to overly strict standards that a pure analytics project would normally have. This main objective of this project was to become familiar with the Julia language.
