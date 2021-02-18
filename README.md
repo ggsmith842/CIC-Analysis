@@ -26,6 +26,7 @@ The data for this project was collected from the `MarketData` package in Julia. 
 
 Looking at the data for Ethereum, ChainLink, & the S&P 500 index showed good data quality with no real issues regarding the data. The biggest issue initially is that since the S&P doesn't trade on weekends and holidays there were missing values. This was solved using next observation carried backwards imputation (NOCB).
 
-**Distribution for ETH**
+##### Distribution for ETH
 
+![alt text](https://github.com/ggsmith842/CIC-Analysis/blob/main/eth_density.PNG)
 
