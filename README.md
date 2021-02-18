@@ -66,8 +66,8 @@ plot(closing_df.Close,closing_df.Close_1,
 
 
 
-Return Correlation :0.004829710905922176
-Closing Price Correlation :0.8732967219733851
+Return Correlation: 0.0048
+Closing Price Correlation: 0.873
 
 
 There does exist a decent correlation between the closing prices for the S&P and ETH.
@@ -92,8 +92,8 @@ The scatter plot of closing prices showed a linear trend between both Ethereum a
 
 ```
 
-Return Correlation :0.57
-Closing Price Correlation :0.93
+Return Correlation: 0.57
+Closing Price Correlation: 0.93
 
 
 After seeing the strong correlation between ChainLink and Ethereum I decided to run a linear regression model on the data.
@@ -203,5 +203,6 @@ However, if ChainLink returns decrease, there is only a 46% chance of Ethereum r
 
 
 
-##### That's all for now!
+
 **Thanks for reading**
+##### That's all for now!
