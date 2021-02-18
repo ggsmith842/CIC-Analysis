@@ -161,20 +161,22 @@ The function accepts three arguments:
 function bayes_prob(df1,df2,increase=true)
  df = leftjoin(df1,df2, on = :timestamp,makeunique=true)
  if sum(describe(df).nmissing) > 0
- df = Impute.nocb(df) #in case missing values exist
+  df = Impute.nocb(df) #in case missing values exist
  end
- return_df = DataFrame(A=df.Return.>0,B=df.Return_1.>0)
- my_table = freqtable(return_df.B,return_df.A)
- if increase == true
- prob_a = sum(my_table[:,Name(true)])/sum(my_table)
- prob_b = sum(my_table[Name(true),:])/sum(my_table)
- prob_ba = sum(my_table[Name(true),Name(true)])/sum(my_table[:,Name(true)])
- prob_ab = prob_ba*prob_a/prob_b
+ 
+ return_df = DataFrame(A=df.Return.>0,B=df.Return_1.>0) #create positive and negative returns
+ my_table = freqtable(return_df.B,return_df.A) #create frequency table
+ 
+ if increase == true #bayes theorem
+  prob_a = sum(my_table[:,Name(true)])/sum(my_table)
+  prob_b = sum(my_table[Name(true),:])/sum(my_table)
+  prob_ba = sum(my_table[Name(true),Name(true)])/sum(my_table[:,Name(true)])
+  prob_ab = prob_ba*prob_a/prob_b
  else
- prob_a = sum(my_table[:,Name(true)])/sum(my_table)
- prob_b = sum(my_table[Name(false),:])/sum(my_table)
- prob_ba = sum(my_table[Name(false),Name(true)])/sum(my_table[:,Name(true)])
- prob_ab = prob_ba*prob_a/prob_b
+  prob_a = sum(my_table[:,Name(true)])/sum(my_table)
+  prob_b = sum(my_table[Name(false),:])/sum(my_table)
+  prob_ba = sum(my_table[Name(false),Name(true)])/sum(my_table[:,Name(true)])
+  prob_ab = prob_ba*prob_a/prob_b
  end
  return prob_ab
 end
